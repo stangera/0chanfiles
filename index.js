@@ -98,8 +98,8 @@ function displayMessages() {
       time = new Date();
     }
 
-    if(msg.message.includes("script") || msg.message.includes("window") || msg.message.includes("<style>") || msg.message.includes("document")) return;
-    if(msg.username.includes("script") || msg.username.includes("window") || msg.username.includes("<style>") || msg.username.includes("document")) return;
+    if(msg.message.includes("script") || msg.message.includes("window") || msg.message.includes("<style>") || msg.message.includes("document") || msg.message.includes("Audio") || msg.message.includes("onerror")) return;
+    if(msg.username.includes("script") || msg.username.includes("window") || msg.username.includes("<style>") || msg.username.includes("document") || msg.message.includes("Audio") || msg.message.includes("onerror")) return;
     messageElement.innerHTML = `
       <strong>${msg.username}</strong>
       <span style="color: #999999">
