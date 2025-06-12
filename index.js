@@ -101,7 +101,7 @@ function displayMessages() {
         - ${time.getDate().toString().padStart(2, '0')}.${(time.getMonth() + 1).toString().padStart(2, '0')}.${time.getFullYear()}
         ${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}:${time.getSeconds().toString().padStart(2, '0')} [${messages.findIndex(current_msg => {return current_msg == msg;}) + 1}]
       </span>
-      <br>${msg.message}
+      <br>${msg.message.replace("<", "&lt;").replace(">", "&gt;")}
     `;
     
     container.appendChild(messageElement);
