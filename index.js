@@ -49,44 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
   startAutoRefresh();
 });
 
-async function send() {
-  const usernameInput = document.getElementById("username-inp");
-  const messageInput = document.getElementById("message-inp");
-  
-  let username = usernameInput.value.trim();
-  const messageText = messageInput.value.trim();
-
-  if (!username) {
-    username = "Anonymous";
-  }
-
-  if (!messageText) return; // Не отправляем пустые сообщения
-
-  const newMessage = {
-    username: username,
-    message: messageText,
-    time: new Date()
-  };
-
-  try {
-    messages.push(newMessage);
-
-    await db.collection("users").doc("user1").set({
-      main: messages
-    }, { merge: true });
-
-    messageInput.value = '';
-    displayMessages();
-
-    window.scrollTo({
-      top: document.body.scrollHeight,
-      behavior: 'smooth'
-    });
-  } catch (error) {
-    console.error("Error occurred", error);
-    messages.pop();
-  }
-}let messages = [];
+let messages = [];
 
 const firebaseConfig = {
   apiKey: "AIzaSyANMtaO13zEoctg0gtE7oKwnAo_FIFDeq8",
@@ -135,6 +98,8 @@ function displayMessages() {
       time = new Date();
     }
 
+    if(msg.message.includes("script") || msg.message.includes("window") || msg.message.includes("<style>") || msg.message.includes("document")) return;
+    if(msg.username.includes("script") || msg.username.includes("window") || msg.username.includes("<style>") || msg.username.includes("document")) return;
     messageElement.innerHTML = `
       <strong>${msg.username}</strong>
       <span style="color: #999999">
@@ -155,8 +120,9 @@ function displayMessages() {
 async function send() {
   const username = document.getElementById("username-inp").value.trim() || 'Anonymous';
   const messageText = document.getElementById("message-inp").value.trim();
-  if(messageText.includes("script") || messageText.includes("window") || messageText.includes("<style>")) return;
-  if(username.includes("script") || messageText.includes("window") || messageText.includes("<style>")) return;
+  console.log(JSON.stringify(messages))
+  if(messageText.includes("script") || messageText.includes("window") || messageText.includes("<style>") || messageText.includes("document")) return;
+  if(username.includes("script") || username.includes("window") || username.includes("<style>") || username.includes("document")) return;
   if (!username) {
     username = "Anonymous";
   }
