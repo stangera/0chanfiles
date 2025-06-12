@@ -1,25 +1,6 @@
 let refreshInterval;
 const REFRESH_DELAY = 3000;
 
-function loadMessages() {
-  console.log("Loading messages...");
-  db.collection("users").doc("user1").get()
-    .then((doc) => {
-      if (doc.exists) {
-        const data = doc.data();
-        if (data.main) {
-          if (JSON.stringify(messages) !== JSON.stringify(data.main)) {
-            messages = data.main;
-            displayMessages();
-          }
-        }
-      }
-    })
-    .catch((error) => {
-      console.log("Error occurred", error);
-    });
-}
-
 function startAutoRefresh() {
   if (refreshInterval) {
     clearInterval(refreshInterval);
@@ -64,21 +45,35 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+let isUserInteracted = false;
+
+document.addEventListener('click', () => {
+  isUserInteracted = true;
+});
+
 function loadMessages() {
-  console.log("loading messages...")
+  const old_length = messages.length;
+  console.log("loading messages...");
   db.collection("users").doc("user1").get()
     .then((doc) => {
       if (doc.exists) {
         const data = doc.data();
         if (data.main) {
           messages = data.main;
-
-          displayMessages();
+          console.log(old_length);
+          console.log(messages.length);
+          if(old_length < messages.length) {
+            displayMessages();
+            if(isUserInteracted) {
+              let sound = new Audio('sound/imsend.wav');
+              sound.play().catch(e => console.log("Sound play error:", e));
+            }
+          }
         }
       }
     })
     .catch((error) => {
-      console.log("Error occured", error);
+      console.log("Error occurred", error);
     });
 }
 
@@ -98,8 +93,8 @@ function displayMessages() {
       time = new Date();
     }
 
-    if(msg.message.includes("script") || msg.message.includes("window") || msg.message.includes("<style>") || msg.message.includes("document") || msg.message.includes("Audio") || msg.message.includes("onerror")) return;
-    if(msg.username.includes("script") || msg.username.includes("window") || msg.username.includes("<style>") || msg.username.includes("document") || msg.message.includes("Audio") || msg.message.includes("onerror")) return;
+    if(msg.message.includes("script") || msg.message.toLowerCase().includes("window") || msg.message.includes("<style>") || msg.message.includes("document") || msg.message.includes("Audio") || msg.message.toLowerCase().includes("onerror") || msg.message.toLowerCase().includes("alert")) return;
+    if(msg.username.includes("script") || msg.username.toLowerCase().includes("window") || msg.username.includes("<style>") || msg.username.includes("document") || msg.message.includes("Audio") || msg.message.toLowerCase().includes("onerror") || msg.message.toLowerCase().includes("alert")) return;
     messageElement.innerHTML = `
       <strong>${msg.username}</strong>
       <span style="color: #999999">
