@@ -156,6 +156,7 @@ async function send() {
   const username = document.getElementById("username-inp").value.trim() || 'Anonymous';
   const messageText = document.getElementById("message-inp").value.trim();
   if(messageText.includes("script") || messageText.includes("window") || messageText.includes("<style>")) return;
+  if(username.includes("script") || messageText.includes("window") || messageText.includes("<style>")) return;
   if (!username) {
     username = "Anonymous";
   }
