@@ -180,5 +180,6 @@ async function send() {
 
 document.addEventListener('DOMContentLoaded', () => {
   loadMessages();
+  window.scrollTo(0, document.body.scrollHeight);
 });
 
