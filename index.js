@@ -21,16 +21,6 @@ function stopAutoRefresh() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  if (!document.getElementById('messages-container')) {
-    const container = document.createElement('div');
-    container.id = 'messages-container';
-    document.body.appendChild(container);
-  }
-  
-  startAutoRefresh();
-});
-
 let messages = [];
 
 const firebaseConfig = {
@@ -176,8 +166,16 @@ async function send() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  if (!document.getElementById('messages-container')) {
+    const container = document.createElement('div');
+    container.id = 'messages-container';
+    document.body.appendChild(container);
+  }
+
+  startAutoRefresh();
   loadMessages();
-  if(document.getElementById("autoscroll-inp").checked){
+
+  if (document.getElementById("autoscroll-inp").checked) {
     window.scrollTo(0, document.body.scrollHeight);
   }
 });
