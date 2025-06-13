@@ -1,5 +1,6 @@
 let refreshInterval;
 const REFRESH_DELAY = 3000;
+const banwords = ["alert", "onerror", "onload", "Audio", "document", "<style>", "window", "script"];
 
 function startAutoRefresh() {
   if (refreshInterval) {
@@ -60,8 +61,10 @@ function loadMessages() {
         const data = doc.data();
         if (data.main) {
           messages = data.main;
-          console.log(old_length);
-          console.log(messages.length);
+          if(document.getElementById("log-inp").checked){
+            console.log(old_length);
+            console.log(messages.length);
+          }
           if(old_length < messages.length) {
             displayMessages();
             if(isUserInteracted) {
@@ -75,6 +78,10 @@ function loadMessages() {
     .catch((error) => {
       console.log("Error occurred", error);
     });
+}
+
+function filter(text) {
+  return String(text).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
 }
 
 function displayMessages() {
@@ -95,13 +102,14 @@ function displayMessages() {
 
     if(msg.message.includes("script") || msg.message.toLowerCase().includes("window") || msg.message.includes("<style>") || msg.message.includes("document") || msg.message.includes("Audio") || msg.message.toLowerCase().includes("onerror") || msg.message.toLowerCase().includes("alert")) return;
     if(msg.username.includes("script") || msg.username.toLowerCase().includes("window") || msg.username.includes("<style>") || msg.username.includes("document") || msg.message.includes("Audio") || msg.message.toLowerCase().includes("onerror") || msg.message.toLowerCase().includes("alert")) return;
+    // .replaceAll("<", "&lt;").replaceAll(">", "&gt;")
     messageElement.innerHTML = `
-      <strong>${msg.username}</strong>
+      <strong>${filter(msg.username)}</strong>
       <span style="color: #999999">
         - ${time.getDate().toString().padStart(2, '0')}.${(time.getMonth() + 1).toString().padStart(2, '0')}.${time.getFullYear()}
         ${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}:${time.getSeconds().toString().padStart(2, '0')} [${messages.findIndex(current_msg => {return current_msg == msg;}) + 1}]
       </span>
-      <br>${msg.message.replace("<", "&lt;").replace(">", "&gt;")}
+      <br>${filter(msg.message)}
     `;
     
     container.appendChild(messageElement);
@@ -115,7 +123,10 @@ function displayMessages() {
 async function send() {
   const username = document.getElementById("username-inp").value.trim() || 'Anonymous';
   const messageText = document.getElementById("message-inp").value.trim();
-  console.log(JSON.stringify(messages))
+  if(document.getElementById("log-inp").checked){
+    console.log(JSON.stringify(messages))
+  }
+
   if(messageText.includes("script") || messageText.includes("window") || messageText.includes("<style>") || messageText.includes("document")) return;
   if(username.includes("script") || username.includes("window") || username.includes("<style>") || username.includes("document")) return;
   if (!username) {
@@ -139,7 +150,9 @@ async function send() {
 
     displayMessages();
   } catch (error) {
-    console.error("Error occured", error);
+    if(document.getElementById("log-inp").checked){
+      console.error("Error occured", error);
+    }
     messages.pop();
   }
 }
@@ -153,7 +166,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 document.addEventListener("keydown", event => {
     if(event.key === "Enter") {
-        console.log("Enter pressed");
+        if(document.getElementById("log-inp").checked){
+          console.log("Enter pressed");
+        }
         send();
         document.getElementById("message-inp").value = "";
         if(event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
