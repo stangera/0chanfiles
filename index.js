@@ -100,6 +100,15 @@ function displayMessages() {
       time = new Date();
     }
 
+    if (msg.attachment) {
+      const link = document.createElement('a');
+      link.href = msg.attachment;
+      link.target = "_blank";
+      link.textContent = `[файл: ${msg.attachmentName || 'скачать'}]`;
+      link.style.display = 'block';
+      messageElement.appendChild(link);
+    }
+
     if(msg.message.includes("script") || msg.message.toLowerCase().includes("window") || msg.message.includes("<style>") || msg.message.includes("document") || msg.message.includes("Audio") || msg.message.toLowerCase().includes("onerror") || msg.message.toLowerCase().includes("alert")) return;
     if(msg.username.includes("script") || msg.username.toLowerCase().includes("window") || msg.username.includes("<style>") || msg.username.includes("document") || msg.message.includes("Audio") || msg.message.toLowerCase().includes("onerror") || msg.message.toLowerCase().includes("alert")) return;
     // .replaceAll("<", "&lt;").replaceAll(">", "&gt;")
