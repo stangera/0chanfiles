@@ -123,23 +123,30 @@ function displayMessages() {
 async function send() {
   const username = document.getElementById("username-inp").value.trim() || 'Anonymous';
   const messageText = document.getElementById("message-inp").value.trim();
-  if(document.getElementById("log-inp").checked){
-    console.log(JSON.stringify(messages))
-  }
+  const fileInput = document.getElementById("attachment");
+  const file = fileInput.files[0];
 
-  if(messageText.includes("script") || messageText.includes("window") || messageText.includes("<style>") || messageText.includes("document")) return;
-  if(username.includes("script") || username.includes("window") || username.includes("<style>") || username.includes("document")) return;
-  if (!username) {
-    username = "Anonymous";
-  }
+  if (
+    banwords.some(word => messageText.includes(word)) ||
+    banwords.some(word => username.includes(word))
+  ) return;
 
   const newMessage = {
-    username: username,
+    username,
     message: messageText,
     time: new Date()
   };
 
   try {
+    // если файл выбран — грузим в Firebase Storage
+    if (file) {
+      const storageRef = firebase.storage().ref(`attachments/${Date.now()}_${file.name}`);
+      const snapshot = await storageRef.put(file);
+      const downloadURL = await snapshot.ref.getDownloadURL();
+      newMessage.attachment = downloadURL;
+      newMessage.attachmentName = file.name;
+    }
+
     messages.push(newMessage);
 
     await db.collection("users").doc("user1").set({
@@ -147,11 +154,12 @@ async function send() {
     }, { merge: true });
 
     document.getElementById("message-inp").value = '';
+    fileInput.value = '';
 
     displayMessages();
   } catch (error) {
-    if(document.getElementById("log-inp").checked){
-      console.error("Error occured", error);
+    if (document.getElementById("log-inp").checked) {
+      console.error("Error occurred", error);
     }
     messages.pop();
   }
