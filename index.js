@@ -35,7 +35,7 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-firebase.storage();
+const storage = firebase.storage();
 
 let isUserInteracted = false;
 
@@ -45,7 +45,6 @@ document.addEventListener('click', () => {
 
 function loadMessages() {
   const old_length = messages.length;
-  console.log("loading messages...");
   db.collection("users").doc("user1").get()
     .then((doc) => {
       if (doc.exists) {
@@ -138,14 +137,18 @@ async function send() {
   };
 
   try {
-    // если файл выбран — грузим в Firebase Storage
     if (file) {
-      const storageRef = firebase.storage().ref(`attachments/${Date.now()}_${file.name}`);
+      console.log("загрузка файла...");
+      const storageRef = storage.ref(`attachments/${Date.now()}_${file.name}`);
+      console.log("storageRef =", storageRef);
       const snapshot = await storageRef.put(file);
+      console.log("файл загружен", snapshot);
       const downloadURL = await snapshot.ref.getDownloadURL();
       newMessage.attachment = downloadURL;
       newMessage.attachmentName = file.name;
     }
+
+
 
     messages.push(newMessage);
 
