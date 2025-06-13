@@ -1,2 +1,2 @@
 # 0chan
-Anonymous messager, my first work with databases
+Link: https://alt-hexi.github.io/0chan/
