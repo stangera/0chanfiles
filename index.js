@@ -138,6 +138,10 @@ async function send() {
 
   try {
     if (file) {
+      console.log("firebase.storage =", firebase.storage);
+      console.log("firebase.storage() =", firebase.storage?.());
+      console.log("typeof firebase.storage =", typeof firebase.storage);
+      console.log("typeof firebase.storage() =", typeof firebase.storage?.());
       console.log("загрузка файла...");
       const storageRef = storage.ref(`attachments/${Date.now()}_${file.name}`);
       console.log("storageRef =", storageRef);
