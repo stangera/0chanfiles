@@ -1,6 +1,16 @@
 let refreshInterval;
 const REFRESH_DELAY = 3000;
-const banwords = ["alert", "onerror", "onload", "Audio", "document", "<style>", "window", "script"];
+const banwords = ["onerror", "onload", "onclick", "onmouseover", "onmouseenter", "onmouseleave",
+  "onmouseup", "onmousedown", "onmousemove", "onwheel", "oncontextmenu",
+  "onkeydown", "onkeypress", "onkeyup",
+  "onblur", "onfocus", "onsubmit", "onreset",
+  "onchange", "oninput", "oninvalid",
+  "onresize", "onscroll",
+  "onselect", "ondrag", "ondrop", "ondragstart", "ondragend", "ondragover",
+  "oncopy", "oncut", "onpaste",
+  "onanimationstart", "onanimationend", "onanimationiteration",
+  "ontransitionstart", "ontransitionend", "ontransitioncancel",
+  "onpointerdown", "onpointerup", "onpointermove", "onpointerenter", "onpointerleave", "onpointercancel", "window", "document", "audio", "script", "<style>"];
 
 function startAutoRefresh() {
   if (refreshInterval) {
@@ -35,7 +45,6 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const storage = firebase.storage();
 
 let isUserInteracted = false;
 
@@ -73,6 +82,29 @@ function loadMessages() {
 function filter(text) {
   return String(text).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
 }
+function safeHTML(input) {
+  const allowedTags = ['b', 'strong', 'i', 'em', 'u', 's', 'sup', 'sub', 'small', 'big', 'code', 'br', 'mark', 'img', 'video'];
+  const div = document.createElement('div');
+  div.innerHTML = input;
+
+  const sanitize = (node) => {
+    if (node.nodeType === 3) return; // текст
+
+    if (node.nodeType === 1) {
+      if (!allowedTags.includes(node.tagName.toLowerCase())) {
+        node.replaceWith(...node.childNodes); // удалить тег, оставить содержимое
+      } else {
+        // удаляем все атрибуты, чтоб никакой onerror не проскочил
+        [...node.attributes].forEach(attr => node.removeAttribute(attr));
+      }
+    }
+
+    [...node.childNodes].forEach(sanitize);
+  };
+
+  [...div.childNodes].forEach(sanitize);
+  return div.innerHTML;
+}
 
 function displayMessages() {
   const container = document.getElementById('messages-container') || document.body;
@@ -90,25 +122,21 @@ function displayMessages() {
       time = new Date();
     }
 
-    if (msg.attachment) {
-      const link = document.createElement('a');
-      link.href = msg.attachment;
-      link.target = "_blank";
-      link.textContent = `[файл: ${msg.attachmentName || 'скачать'}]`;
-      link.style.display = 'block';
-      messageElement.appendChild(link);
-    }
+    const lowerMessage = messageText.toLowerCase();
+    const lowerUsername = username.toLowerCase();
+    
+    if (
+      banwords.some(word => lowerMessage.includes(word)) ||
+      banwords.some(word => lowerUsername.includes(word))
+    ) return;
 
-    if(msg.message.includes("script") || msg.message.toLowerCase().includes("window") || msg.message.includes("<style>") || msg.message.includes("document") || msg.message.includes("Audio") || msg.message.toLowerCase().includes("onerror") || msg.message.toLowerCase().includes("alert")) return;
-    if(msg.username.includes("script") || msg.username.toLowerCase().includes("window") || msg.username.includes("<style>") || msg.username.includes("document") || msg.message.includes("Audio") || msg.message.toLowerCase().includes("onerror") || msg.message.toLowerCase().includes("alert")) return;
-    // .replaceAll("<", "&lt;").replaceAll(">", "&gt;")
     messageElement.innerHTML = `
       <strong>${filter(msg.username)}</strong>
       <span style="color: #999999">
         - ${time.getDate().toString().padStart(2, '0')}.${(time.getMonth() + 1).toString().padStart(2, '0')}.${time.getFullYear()}
         ${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}:${time.getSeconds().toString().padStart(2, '0')} [${messages.findIndex(current_msg => {return current_msg == msg;}) + 1}]
       </span>
-      <br>${filter(msg.message)}
+      <br>${safeHTML(msg.message)}
     `;
     
     container.appendChild(messageElement);
@@ -122,8 +150,6 @@ function displayMessages() {
 async function send() {
   const username = document.getElementById("username-inp").value.trim() || 'Anonymous';
   const messageText = document.getElementById("message-inp").value.trim();
-  const fileInput = document.getElementById("attachment");
-  const file = fileInput.files[0];
 
   if (
     banwords.some(word => messageText.includes(word)) ||
@@ -137,23 +163,6 @@ async function send() {
   };
 
   try {
-    if (file) {
-      console.log("firebase.storage =", firebase.storage);
-      console.log("firebase.storage() =", firebase.storage?.());
-      console.log("typeof firebase.storage =", typeof firebase.storage);
-      console.log("typeof firebase.storage() =", typeof firebase.storage?.());
-      console.log("загрузка файла...");
-      const storageRef = storage.ref(`attachments/${Date.now()}_${file.name}`);
-      console.log("storageRef =", storageRef);
-      const snapshot = await storageRef.put(file);
-      console.log("файл загружен", snapshot);
-      const downloadURL = await snapshot.ref.getDownloadURL();
-      newMessage.attachment = downloadURL;
-      newMessage.attachmentName = file.name;
-    }
-
-
-
     messages.push(newMessage);
 
     await db.collection("users").doc("user1").set({
