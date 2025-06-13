@@ -45,6 +45,7 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+firebase.storage();
 
 let isUserInteracted = false;
 
