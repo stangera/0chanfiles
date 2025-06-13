@@ -21,6 +21,22 @@
     <button onclick="send()">Send</button> <br>
     <label for="attachment" style="cursor:pointer;">📎 прикрепить</label>
     <input type="file" id="attachment" style="display:none;">
+    <input type="file" id="upload">
+    <script>
+      const fileInput = document.getElementById("upload");
+      fileInput.addEventListener("change", async () => {
+        const file = fileInput.files[0];
+        const storageRef = firebase.storage().ref("test/" + file.name);
+        try {
+          const snapshot = await storageRef.put(file);
+          const url = await snapshot.ref.getDownloadURL();
+          console.log("Uploaded and got URL:", url);
+        } catch (e) {
+          console.error("UPLOAD ERROR:", e);
+        }
+      });
+    </script>
+
     <input type="checkbox" checked="checked" id="autoscroll-inp" class="checkbox-label"> <label class="checkbox-label">Auto scroll</label><br>
     <input type="checkbox" id="log-inp" class="checkbox-label"> <label class="checkbox-label">Database logs</label> 
 
